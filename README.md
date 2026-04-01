@@ -1,3 +1,5 @@
+![Banner](banner.svg)
+
 # env-doctor
 
 **Audit your `.env` files. Find committed secrets, default values, missing vars, and mismatches. Before it's too late.**
