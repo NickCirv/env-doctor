@@ -1,104 +1,21 @@
-![Banner](banner.svg)
+![env-doctor — audit your .env files for committed secrets, placeholder values, and missing vars](assets/banner.png)
 
-# env-doctor
+<div align="center">
 
-**Audit your `.env` files. Find committed secrets, default values, missing vars, and mismatches. Before it's too late.**
+**Catch .env problems before they become production incidents. Zero-dependency, offline-first, one command.**
 
-> Zero dependencies. Pure Node.js. 100% offline.
+![license](https://img.shields.io/badge/license-MIT-blue?labelColor=0B0A09)
+![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen?labelColor=0B0A09)
+![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?labelColor=0B0A09)
+![checks](https://img.shields.io/badge/checks-14-8B92F6?labelColor=0B0A09)
 
----
-
-## The horror story that built this
-
-You pushed to GitHub on a Friday afternoon. Moved fast.
-
-```
-git add .
-git commit -m "final fixes"
-git push origin main
-```
-
-You forgot `.env` wasn't in `.gitignore`. Your repo is public.
-
-Your `DATABASE_URL`, `STRIPE_SECRET_KEY`, `JWT_SECRET` — all of it — now searchable on GitHub. Bots scraped it within minutes. You find out Monday morning when your AWS bill is $3,400.
-
-**env-doctor catches this before you push.**
+</div>
 
 ---
 
-## Install & Run
+You pushed to GitHub on a Friday. You forgot `.env` wasn't in `.gitignore`. The repo was public. Bots scraped your `STRIPE_SECRET_KEY` and `DATABASE_URL` within minutes. You found out Monday when your AWS bill hit $3,400.
 
-```bash
-# One-shot audit (no install needed)
-npx env-doctor
-
-# Audit a specific file
-npx env-doctor path/to/.env
-
-# Audit a specific directory
-npx env-doctor path/to/project
-```
-
----
-
-## What it checks
-
-### 🔴 Critical (deploy-blockers)
-
-| Check | What it catches |
-|---|---|
-| **Git tracking** | `.env` committed via `git ls-files` — the #1 cause of credential leaks |
-| **Missing .gitignore** | `.env` not excluded — one `git add .` away from disaster |
-| **Default values** | `changeme`, `your-api-key-here`, `TODO`, `placeholder`, `test123`, `password123`, `xxx` and 15 more patterns |
-| **Real secret patterns** | AWS keys (`AKIA...`), GitHub tokens (`ghp_`, `github_pat_`), Stripe live keys (`sk_live_`), Anthropic keys (`sk-ant-`), OpenAI keys, Slack tokens, Twilio SIDs, SendGrid keys |
-| **Shared secrets** | Same value used for multiple sensitive keys (e.g. `DB_PASSWORD` and `JWT_SECRET` are identical) |
-
-### 🟡 Warnings (should fix)
-
-| Check | What it catches |
-|---|---|
-| **Missing .env.example** | No template for new devs — they won't know what to set |
-| **Undocumented vars** | Variables in `.env` that don't appear in `.env.example` |
-| **Missing required vars** | Variables in `.env.example` that aren't in `.env` |
-| **Self-referencing values** | `DB_HOST=DB_HOST` — a value set to its own key name |
-| **Empty values** | `API_KEY=` — blank values that will cause silent runtime failures |
-| **Trailing whitespace** | Invisible spaces after values — causes auth failures that take hours to debug |
-
-### 🟢 Info (good to know)
-
-| Check | What it catches |
-|---|---|
-| **No comments** | Variables with no explanatory `# comments` |
-| **Framework vars** | Next.js → suggests `NEXTAUTH_SECRET`, Node server → `NODE_ENV`, `PORT` |
-| **NODE_ENV missing** | Not set — many libraries behave differently without it |
-
----
-
-## Commands
-
-```bash
-# Audit current directory
-npx env-doctor
-
-# Audit a specific .env file
-npx env-doctor path/to/.env
-
-# Auto-fix safe issues (add .env to .gitignore, generate .env.example)
-npx env-doctor --fix
-
-# Show which vars are in .env vs .env.example
-npx env-doctor --diff
-
-# Generate .env.example from current .env (strips real values, keeps keys)
-npx env-doctor --generate
-
-# No colour output (for CI)
-npx env-doctor --no-color
-```
-
----
-
-## Example output
+`env-doctor` catches this before you push — 14 checks across three severity tiers, no install, runs entirely offline.
 
 ```
 🏥 .env Doctor
@@ -130,11 +47,7 @@ Scanning: /my-project
 
 🟢 INFO (2)
   💬 4 variables have no explanatory comments
-     Adding # comments above each var helps teammates understand what each key does.
-
-  🌱 NODE_ENV is not set
-     Many libraries change behaviour based on NODE_ENV.
-     → Add NODE_ENV=development to .env
+  🌱 NODE_ENV is not set — many libraries behave differently without it
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 Overall Health: 🔴 CRITICAL — fix issues above before deploying
@@ -142,42 +55,105 @@ Overall Health: 🔴 CRITICAL — fix issues above before deploying
 Run env-doctor --fix to auto-fix what's safe (gitignore, .env.example)
 ```
 
----
+## Install
 
-## Auto-fix
+No npm account, no global install — runs straight from GitHub with zero dependencies:
 
-`--fix` handles the safe, non-destructive fixes automatically:
+```bash
+npx github:NickCirv/env-doctor
+```
 
-- Adds `.env` to `.gitignore` (creates the file if it doesn't exist)
-- Generates `.env.example` from your `.env` (all values stripped to empty)
+## Usage
 
-It will **never** modify your `.env` file directly or remove variables.
+```bash
+# Audit .env in current directory
+npx github:NickCirv/env-doctor
 
----
+# Audit a specific file
+npx github:NickCirv/env-doctor path/to/.env
 
-## Use in CI
+# Audit a specific directory
+npx github:NickCirv/env-doctor path/to/project
+
+# Auto-fix safe issues (add .env to .gitignore, generate .env.example)
+npx github:NickCirv/env-doctor --fix
+
+# Show which vars are in .env vs .env.example
+npx github:NickCirv/env-doctor --diff
+
+# Generate .env.example from current .env (strips real values, keeps keys)
+npx github:NickCirv/env-doctor --generate
+
+# No colour output (for CI)
+npx github:NickCirv/env-doctor --no-color
+```
+
+| Flag | Description |
+|------|-------------|
+| `--fix` | Auto-fix safe issues: add `.env` to `.gitignore`, generate `.env.example` |
+| `--diff` | Show which vars are in `.env` vs `.env.example` |
+| `--generate` | Generate `.env.example` from `.env` — all values stripped to empty |
+| `--no-color` | Disable colour output (auto-enabled in CI) |
+| `--help`, `-h` | Show help |
+
+## What it checks
+
+### Critical — deploy blockers
+
+| Check | What it catches |
+|-------|-----------------|
+| **Git tracking** | `.env` committed via `git ls-files` — the #1 cause of credential leaks |
+| **Missing .gitignore** | `.env` not excluded — one `git add .` away from disaster |
+| **Default values** | `changeme`, `your-api-key-here`, `TODO`, `placeholder`, `test123`, `password123` and 15+ more patterns |
+| **Real secret patterns** | AWS keys (`AKIA...`), GitHub tokens (`ghp_`, `github_pat_`), Stripe live keys (`sk_live_`), Anthropic keys (`sk-ant-`), OpenAI keys, Slack tokens, Twilio SIDs, SendGrid keys |
+| **Shared secrets** | Same value used for multiple sensitive keys (e.g. `DB_PASSWORD` and `JWT_SECRET` are identical) |
+
+### Warnings — should fix
+
+| Check | What it catches |
+|-------|-----------------|
+| **Missing .env.example** | No template for new devs |
+| **Undocumented vars** | Variables in `.env` that don't appear in `.env.example` |
+| **Missing required vars** | Variables in `.env.example` that aren't in `.env` |
+| **Self-referencing values** | `DB_HOST=DB_HOST` — value set to its own key name |
+| **Empty values** | `API_KEY=` — blank values that cause silent runtime failures |
+| **Trailing whitespace** | Invisible spaces after values — causes auth failures that take hours to debug |
+
+### Info — good to know
+
+| Check | What it catches |
+|-------|-----------------|
+| **No comments** | Variables with no explanatory `# comments` |
+| **Framework vars** | Next.js → suggests `NEXTAUTH_SECRET`; Node server → `NODE_ENV`, `PORT`; Remix → `SESSION_SECRET`; SvelteKit/Nuxt prefix warnings |
+| **NODE_ENV missing** | Not set — many libraries behave differently without it |
+
+## CI usage
+
+Exit code is `1` if any critical issue is found, `0` if clean:
 
 ```yaml
 # GitHub Actions
 - name: Audit .env.example
-  run: npx env-doctor --no-color
+  run: npx github:NickCirv/env-doctor --no-color
 ```
 
+## Auto-fix
+
+`--fix` handles safe, non-destructive fixes automatically:
+
+- Adds `.env` to `.gitignore` (creates the file if it doesn't exist)
+- Generates `.env.example` from your `.env` (all values stripped to empty)
+
+It will **never** modify your `.env` directly or remove variables.
+
+## What it is NOT
+
+- **Not a secrets manager or prevention tool.** It audits your `.env` at point-in-time — pair it with a pre-commit hook to stop leaks before they land.
+- **Not a guarantee.** Detection is pattern-based: it can miss novel key formats and surface false positives on low-confidence patterns (like UUID-style tokens).
+- **Not a network tool.** All analysis is fully offline — no requests are ever made, no data leaves your machine.
+
 ---
 
-## Zero dependencies
-
-env-doctor uses only Node.js built-ins:
-
-- `fs` — file reading and writing
-- `path` — path resolution
-- `os` — home directory
-- `child_process` — git detection (`execFileSync`)
-
-No `npm install`. No network requests. Works offline. No supply chain attack surface.
-
----
-
-## License
-
-MIT © [NickCirv](https://github.com/NickCirv)
+<div align="center">
+<sub>Zero dependencies · Node 18+ · MIT · by <a href="https://github.com/NickCirv">NickCirv</a></sub>
+</div>
